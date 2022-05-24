@@ -1,0 +1,56 @@
+# How to Cache your Node.js application with Redis
+
+# What is caching?
+  Caching is the process of storing copies of files in a cache
+  Temporary storage location so that they can be accessed more quickly.
+  The goal of caching is speeding up data access operations better than a database or remote server could allow
+# What is Redis?
+  Redis is an open-source (BSD licensed), in-memory data structure store used as a database, cache, and message broker.
+  You can think of it as a No-SQL database, which stores data as a key-value pair in the system memory. 
+  If needed, Redis supports disk-persistent data storage too.
+  
+# Install Redis:
+  npm init -y
+  npm install redis
+  npm install node-fetch express redis
+  
+  we create a Redis client and link it with the local Redis instance using the default Redis port (6379)
+  const client = redis.createClient(6379);
+  
+  server.js file
+      const express = require('express');
+      const axios = require('axios');
+      const redis = require('redis');
+      const app = express();
+      const port = 4000;
+      const client = redis.createClient(6379);
+      client.on("error", (error) => {
+      console.error(error);
+      });
+      app.get('/data/:searchtext', (req, res) => {
+      try {
+       const searchtext = req.params.searchtext;
+       client.get(searchtext, async (err, data) => {
+         if (data) {
+            return res.status(200).send({
+             error: false,
+             message: `Data for ${searchtext} from the cache`,
+             data: JSON.parse(data)
+           })
+         } else { 
+             const recipe = await axios.get(`https://jsonplaceholder.typicode.com/${searchtext}`);
+             client.setex(searchtext, 1020, JSON.stringify(recipe.data));
+             return res.status(200).send({
+               error: false,
+               message: `Data for ${searchtext} from the server`,
+               data: recipe.data
+             });
+         }
+       }) 
+      } catch (error) {
+         console.log(error)
+      }
+      });
+      app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+      });
