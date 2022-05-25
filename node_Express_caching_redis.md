@@ -59,67 +59,65 @@
   });
   
   app.get('/:searchtext', async(req, res) => {
-  try {
-      console.log('Fetching Data...');
-      const searchtext = req.params.searchtext;
-      // console.log(searchtext)
-      
-      // data from the catch 
-      client.get(searchtext, async(err, data) => {
-          if (data) {
-              return res.status(200).send({
-                  error: false,
-                  message: `Data for ${searchtext} from the cache`,
-                  data: JSON.parse(data)
-              })
-          } else {
-              // data from the server
-              const recipe = await axios.get(`https://jsonplaceholder.typicode.com/${searchtext}`);
-              client.setex(searchtext, 60, JSON.stringify(recipe.data));
-              return res.status(200).send({
-                  error: false,
-                  message: `Data for ${searchtext} from the server`,
-                  data: recipe.data
-              });
-          }
-      })
+    try {
+        console.log('Fetching Data...');
+        const searchtext = req.params.searchtext;
+        // console.log(searchtext)
+        
+        // data from cache
+        client.get(searchtext, async(err, data) => {
+            if (data) {
+                return res.status(200).send({
+                    error: false,
+                    message: `Data for ${searchtext} from the cache`,
+                    data: JSON.parse(data)
+                })
+            } else {
+                // data from Server
+                const recipe = await axios.get(`https://jsonplaceholder.typicode.com/${searchtext}`);
+                client.setex(searchtext, 60, JSON.stringify(recipe.data));
+                return res.status(200).send({
+                    error: false,
+                    message: `Data for ${searchtext} from the server`,
+                    data: recipe.data
+                });
+            }
+        })
+
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+
+    // cors 
+    app.use(function(req, res, next) {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+      res.header("Access-Control-Allow-Headers", "Content-Type");
+      next();
+    });
+
+
+    const db = require('./app/model');
+
+
+    const userRoute = require('./app/router/user.router');
+    const roleRoute = require('./app/router/role.router');
+    const merchantRoute = require('./app/router/merchant.router');
 
 
 
-      // cors 
-      app.use(function(req, res, next) {
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        res.header("Access-Control-Allow-Headers", "Content-Type");
-        next();
-      });
+    // router 
+    app.use('/api/v1/users', userRoute);
+
+    // set port listing for request
+    const PORT = process.env.APP_PORT || 3003;
 
 
-      const db = require('./app/model');
-
-
-      const userRoute = require('./app/router/user.router');
-      const roleRoute = require('./app/router/role.router');
-      const merchantRoute = require('./app/router/merchant.router');
-
-
-
-      // router 
-      app.use('/api/v1/users', userRoute);
-      app.use('/api/v1/role', roleRoute);
-      app.use('/api/v1/merchant', merchantRoute)
-
-      // set port listing for request
-      const PORT = process.env.APP_PORT || 3003;
-
-
-      app.listen(PORT, () => {
-        console.log(`server is running on port ${PORT}`);
-      })
-  } catch (error) {
-      console.log(error)
-  }
-  })
+    app.listen(PORT, () => {
+      console.log(`server is running on port ${PORT}`);
+    })
   
     
