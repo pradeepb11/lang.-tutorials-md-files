@@ -1,11 +1,12 @@
 console.log('Working');
 
-
+```
 //Q  What is an out put ?
 const number = [11, 25, 31, 33, 18, 200];
 number.sort();
 console.log(number);
 // ANs: [11,18,200,25,31,33]
+```
 
 console.log('=***********************Question********************************=');
 //Q  What is out put ?
